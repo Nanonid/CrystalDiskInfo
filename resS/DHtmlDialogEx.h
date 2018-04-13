@@ -7,27 +7,20 @@
 
 #pragma once
 
-class CDialogCx : public CDialogEx
+class CDHtmlDialogEx : public CDHtmlDialog
 {
 public:
-	// Font Type
-	static const int FT_AUTO      = 0x0000;
-	static const int FT_GDI       = 0x0001;
-	static const int FT_GDI_PLUS  = 0x0002;
-	static const int FT_D_WRITE   = 0x0003;
+	CDHtmlDialogEx(UINT dlgResouce, UINT dlgHtml, CWnd* pParent = NULL);
+	virtual ~CDHtmlDialogEx();
 
-	CDialogCx(UINT dlgResouce, CWnd* pParent = NULL);
-	virtual ~CDialogCx();
-
+	void InitDialogEx(DWORD sizeX, DWORD sizeY, CString dlgPath);
 	void SetClientRect(DWORD sizeX, DWORD sizeY, DWORD menuLine = 0);
 	void ShowWindowEx(int nCmdShow);
 
 	virtual BOOL Create(UINT nIDTemplate, CWnd* dlgWnd, UINT menuId, CWnd* pParentWnd = NULL);
 
-	CString m_FontFace;
 	CString m_CurrentLangPath;
 	CString m_DefaultLangPath;
-	INT m_FontType;
 
 	enum ZOOM_TYPE
 	{
@@ -36,9 +29,11 @@ public:
 		ZOOM_TYPE_125 = 125,
 		ZOOM_TYPE_150 = 150,
 		ZOOM_TYPE_200 = 200,
-		ZOOM_TYPE_250 = 250,
-		ZOOM_TYPE_300 = 300,
 	};
+
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+
+	static const int TIMER_INIT_DHTML_DIALOG = 0x1000;
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
@@ -56,40 +51,35 @@ protected:
 
 	double m_ZoomRatio;
 	DWORD m_ZoomType;
-	BOOL m_IsHighContrast;
-	BOOL m_IsDrawFrame;
-	INT m_Dpi;
 
-	CString m_CxThemeDir;
-	CString m_CxCurrentTheme;
-	CString m_CxDefaultTheme;
+	void SetClassName(LPCTSTR szElementId, CString className);
+	void SetTitle(LPCTSTR szElementId, CString title);
 
-	CString m_BackgroundName;
-	CBitmap m_BitmapBg;
-	CDC		m_BgDC;
-	CImage m_ImageBg;
-	CBrush m_BrushDlg;
-
+	void SetElementPropertyEx(LPCTSTR szElementId, DISPID dispid, CString className);
+	void SetElementOuterHtmlEx(LPCTSTR szElementId, CString outerHtml);
+	void SetElementInnerHtmlEx(LPCTSTR szElementId, CString innerHtml);
+	INT CallScript(CString funcition, CString argument);
+	void EnableDpiAware();
 	DWORD ChangeZoomType(DWORD zoomType);
 	double GetZoomRatio();
 	CString i18n(CString section, CString key, BOOL inEnglish = FALSE);
+	void SetLabel(CString &label, CString element, CString title);
 	void OpenUrl(CString url);
 	BOOL ClickCheck();
-	BOOL IsHighContrast();
-	BOOL IsDrawFrame();
+	BOOL IsLoadHtmlCompleted();
 
-	virtual void SetupControl(int nIDDlgItem , int x, int y, int width, int height);
-	virtual void UpdateDialogSize();
-	virtual void UpdateBackground(bool resize = false);
-	virtual CString IP(CString imageName);
+	void HideControl(int nIDDlgItem);
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
 	virtual void PostNcDestroy();
+	virtual BOOL OnAmbientProperty(COleControlSite* pSite, DISPID dispid, VARIANT* pvar);
+	virtual STDMETHODIMP GetOptionKeyPath(LPOLESTR *pchKey, DWORD dw);
+	virtual STDMETHODIMP Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS *pDispParams, VARIANT *pVarResult, EXCEPINFO *pExcepInfo, UINT *puArgErr);
+	virtual void InitDialogComplete();
 
 	DECLARE_MESSAGE_MAP()
-	afx_msg LRESULT OnDpiChanged(WPARAM wParam, LPARAM lParam);
-	afx_msg LRESULT OnSysColorChange(WPARAM wParam, LPARAM lParam);
-	afx_msg LRESULT OnDisplayChange(WPARAM wParam, LPARAM lParam);
-	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
-	afx_msg BOOL OnNcCreate(LPCREATESTRUCT lpCreateStruct);
+
+	DECLARE_DHTML_EVENT_MAP()
+
 };
